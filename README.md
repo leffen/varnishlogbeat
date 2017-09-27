@@ -1,5 +1,6 @@
 # Varnishlogbeat
 
+
 Varnishlogbeat is an Elastic [beat](https://www.elastic.co/products/beats)
 that reads log data from a Varnish Shared Memory file and ships it
 to Elasticsearch.

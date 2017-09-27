@@ -1,5 +1,8 @@
 FROM golang:1.8
 
+ARG jfrog
+ARG dest_url
+
 LABEL maintainer phenomenes
 
 ENV PATH=$PATH:$GOPATH/bin
@@ -9,19 +12,10 @@ RUN apt-get update && apt-get install -y \
 	pkg-config \
 	&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# https://packagecloud.io/varnishcache/varnish5/packages/debian/jessie/varnish-dev_5.2.0-1~jessie_amd64.deb
-
-# RUN curl -O https://repo.varnish-cache.org/pkg/5.0.0/varnish_5.0.0-1_amd64.deb \
-#	 -O https://repo.varnish-cache.org/pkg/5.0.0/varnish-dev_5.0.0-1_amd64.deb \
 
 RUN curl -s https://packagecloud.io/install/repositories/varnishcache/varnish5/script.deb.sh | bash
 RUN apt-get install -y varnish-dev=5.0.0-1 varnish=5.0.0-1
 
-#RUN curl -O https://packagecloud.io/varnishcache/varnish5/packages/debian/jessie/varnish_5.2.0-1~jessie_amd64.deb \
-#	 -O https://packagecloud.io/varnishcache/varnish5/packages/debian/jessie/varnish-dev_5.2.0-1~jessie_amd64.deb\
-#        && dpkg -i varnish_5.2.0-1~jessie_amd64.deb \
-#	&& dpkg -i varnish-dev_5.2.0-1~jessie_amd64.deb \
-#	&& rm varnish_5.2.0-1~jessie_amd64.deb varnish-dev_5.2.0-1~jessie_amd64.deb 
 RUN mkdir -p $GOPATH/src/github.com/phenomenes/varnishlogbeat
 
 COPY . $GOPATH/src/github.com/phenomenes/varnishlogbeat
@@ -29,6 +23,10 @@ COPY . $GOPATH/src/github.com/phenomenes/varnishlogbeat
 WORKDIR $GOPATH/src/github.com/phenomenes/varnishlogbeat
 
 RUN go build .
+
+# Copy to deploy area. Can be omitted
+RUN curl -u$jfrog -T varnishlogbeat "${dest_url}varnishlogbeat" && \
+ curl -u$jfrog -T varnishlogbeat.yml "${dest_url}varnishlogbeat.yml"
 
 COPY default.vcl /etc/varnish/default.vcl
 COPY docker-entrypoint.sh /docker-entrypoint.sh
